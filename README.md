@@ -72,14 +72,14 @@ Stump (separate prefab)
 ## Default Settings
 
 ### Culling Distances
-- Small: 50 units
-- Medium: 100 units
-- Large: 200 units
+- Small: 50 Meters
+- Medium: 100 Meters
+- Large: 200 Meters
 
 ### Shadow Distances
-- Small: 25 units
-- Medium: 50 units
-- Large: 100 units
+- Small: 25 Meters
+- Medium: 50 Meters
+- Large: 100 Meters
 
 ## Notes
 

@@ -6,6 +6,19 @@ using System.Linq;
 using System.Collections.Concurrent;
 using System.IO;
 
+public class Resource : MonoBehaviour
+{
+    public int healthPoints;
+    public int maxHealthPoints;
+    public bool dropable;
+    public int dropObjectCount;
+}
+
+public class FoliageEffect : MonoBehaviour
+{
+    public Renderer[] renderers;
+}
+
 public class AutoObjectGenerator : EditorWindow
 {
     private enum ObjectType { Small, Medium, Large, Resource, Trees, Bushes }
@@ -103,7 +116,7 @@ public class AutoObjectGenerator : EditorWindow
         PrefabGenerators[ObjectType.Small] = (generator, path) => generator.GenerateObjectPrefabs(path);
         PrefabGenerators[ObjectType.Medium] = (generator, path) => generator.GenerateObjectPrefabs(path);
         PrefabGenerators[ObjectType.Large] = (generator, path) => generator.GenerateObjectPrefabs(path);
-        PrefabGenerators[ObjectType.Resource] = (generator, path) => generator.GenerateResourcePrefab(path);
+        PrefabGenerators[ObjectType.Resource] = (generator, path) => generator.GenerateResourcePrefabs(path);
         PrefabGenerators[ObjectType.Trees] = (generator, path) => generator.GenerateTreePrefabs(path);
         PrefabGenerators[ObjectType.Bushes] = (generator, path) => generator.GenerateBushPrefabs(path);
     }
@@ -130,6 +143,25 @@ public class AutoObjectGenerator : EditorWindow
                                     MeshColliderCookingOptions.WeldColocatedVertices | 
                                     MeshColliderCookingOptions.UseFastMidphase;
         };
+    }
+
+    private static int GetOrCreateLayer(string layerName)
+    {
+        if (LayerCache.TryGetValue(layerName, out int layerIndex))
+        {
+            return layerIndex;
+        }
+        
+        layerIndex = LayerMask.NameToLayer(layerName);
+        if (layerIndex != -1)
+        {
+            LayerCache[layerName] = layerIndex;
+            return layerIndex;
+        }
+        
+        
+        Debug.LogWarning($"Layer '{layerName}' not found. Using default layer.");
+        return 0;
     }
 
     [MenuItem("Tools/Object & Resource Generator")]
@@ -1136,48 +1168,6 @@ public class AutoObjectGenerator : EditorWindow
         }
     }
     
-    private async void GeneratePrefabsAsync()
-    {
-        string folderPath = TypeFolders[selectedType];
-        
-        await Task.Delay(100);
-        
-        EnsureFolderExists("Assets/Resources", folderPath);
-        
-        EditorUtility.DisplayProgressBar("Generating Prefabs", "Creating prefabs...", 0.5f);
-        
-        try
-        {
-            switch (selectedType)
-            {
-                case ObjectType.Resource:
-                    GenerateResourcePrefabs(folderPath);
-                    break;
-                case ObjectType.Trees:
-                    GenerateTreePrefabs(folderPath);
-                    break;
-                case ObjectType.Bushes:
-                    GenerateBushPrefabs(folderPath);
-                    break;
-                default:
-                    GenerateObjectPrefabs(folderPath);
-                    break;
-            }
-            
-            EditorUtility.DisplayDialog("Success", $"Successfully generated prefabs in {folderPath}", "OK");
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Error generating prefabs: {e.Message}\n{e.StackTrace}");
-            EditorUtility.DisplayDialog("Error", $"Error generating prefabs: {e.Message}", "OK");
-        }
-        finally
-        {
-            EditorUtility.ClearProgressBar();
-            AssetDatabase.Refresh();
-        }
-    }
-    
     private void SavePrefab(GameObject prefab, string folderPath, string suffix)
     {
         string prefabName = $"{selectedType}_{suffix}";
@@ -1198,23 +1188,83 @@ public class AutoObjectGenerator : EditorWindow
             GameObject.DestroyImmediate(prefab);
         }
     }
-    
-    private void EnsureFolderExists(string parentFolder, string newFolder)
+
+    private void DrawBushSettings()
     {
-        string fullPath = Path.Combine(parentFolder, newFolder).Replace("\\", "/");
+        DrawSectionHeader("Bush Settings");
+        DrawBushBaseModels();
         
-        if (!AssetDatabase.IsValidFolder(fullPath))
+        EditorGUILayout.Space(5);
+        
+        DrawSectionHeader("Materials");
+        DrawBushMaterials();
+        
+        EditorGUILayout.Space(5);
+        
+        DrawSectionHeader("Forage Settings");
+        DrawBushForageSettings();
+    }
+    
+    private void DrawBushBaseModels()
+    {
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        
+        EditorGUILayout.LabelField("Base Models", EditorStyles.boldLabel);
+        
+        for (int i = 0; i < bushModels.Count; i++)
         {
-            string guid = AssetDatabase.CreateFolder(parentFolder, newFolder);
-            if (string.IsNullOrEmpty(guid))
+            EditorGUILayout.BeginHorizontal();
+            bushModels[i] = (Mesh)EditorGUILayout.ObjectField($"Model_{i}", bushModels[i], typeof(Mesh), false);
+            
+            if (GUILayout.Button("×", GUILayout.Width(20)))
             {
-                Debug.LogError($"Failed to create folder: {fullPath}");
+                bushModels.RemoveAt(i);
+                i--;
             }
-            else
+            
+            EditorGUILayout.EndHorizontal();
+            
+            if (i < bushModels.Count - 1)
             {
-                Debug.Log($"Created folder: {fullPath}");
+                EditorGUILayout.Space(2);
+                EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+                EditorGUILayout.Space(2);
             }
         }
+        
+        EditorGUILayout.Space(2);
+        if (GUILayout.Button("Add Bush Model"))
+        {
+            bushModels.Add(null);
+        }
+        
+        EditorGUILayout.EndVertical();
+    }
+    
+    private void DrawBushMaterials()
+    {
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        
+        bushTexture = (Texture2D)EditorGUILayout.ObjectField("Bush Texture", bushTexture, typeof(Texture2D), false);
+        bushPhysicsMaterial = (PhysicMaterial)EditorGUILayout.ObjectField("Physics Material", bushPhysicsMaterial, typeof(PhysicMaterial), false);
+        
+        EditorGUILayout.EndVertical();
+    }
+    
+    private void DrawBushForageSettings()
+    {
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        
+        hasBushForage = EditorGUILayout.Toggle("Has Forage", hasBushForage);
+        
+        if (hasBushForage)
+        {
+            EditorGUI.indentLevel++;
+            bushForageMesh = (Mesh)EditorGUILayout.ObjectField("Forage Mesh", bushForageMesh, typeof(Mesh), false);
+            EditorGUI.indentLevel--;
+        }
+        
+        EditorGUILayout.EndVertical();
     }
 }
     

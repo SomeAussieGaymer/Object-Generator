@@ -89,7 +89,7 @@ Skybox (optional)
 
 ### Tree Object
 ```
-Object
+Resource
 ├── Model_Trunk (trunk mesh with collider)
 ├── Model_Leaves (leaves mesh with foliage effect)
 ├── Model_Stump (stump mesh)
@@ -98,8 +98,17 @@ Object
 ├── Resource Component
 └── FoliageEffect Component
 
-Nav (separate prefab)
-└── NavMesh Collider
+Debris (separate prefab)
+├── Model_Trunk (trunk mesh with collider)
+├── Model_Leaves (leaves mesh with foliage effect)
+├── Model_Stump (stump mesh)
+├── Model_AdditionalTrunk_X (optional additional trunks)
+└── Model_AdditionalLeaves_X (optional additional leaves)
+
+Debris (separate prefab)
+├── Model_Stump
+└── Model_AdditionalLeaves_X (optional additional leaves)
+
 ```
 
 ### Bush Object
@@ -111,31 +120,7 @@ Object
 ├── Resource Component
 └── FoliageEffect Component
 
-Nav (separate prefab)
-└── NavMesh Collider
 ```
-
-## Default Settings
-
-### Resource Properties
-- Health Points: 100
-- Dropable: True
-- Drop Object Count: 5
-
-### Bush Resource Properties
-- Health Points: 50
-- Dropable: True
-- Drop Object Count: 3
-
-### Culling Distances
-- Small: 50 Meters
-- Medium: 100 Meters
-- Large: 200 Meters
-
-### Shadow Distances
-- Small: 25 Meters
-- Medium: 50 Meters
-- Large: 100 Meters
 
 ## Notes
 

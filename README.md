@@ -88,3 +88,7 @@ Stump (separate prefab)
 - Objects are automatically organized in folders by type
 - Layer and tag assignments are handled automatically
 - Shadow casting is optimized based on LOD level 
+
+## License
+
+This tool is available under the MIT License. See the LICENSE file for details.

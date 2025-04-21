@@ -74,60 +74,52 @@ Skybox (optional)
 
 ### Resource Object
 ```
-Object
-├── Model_0 (main mesh)
-├── Model_Metal (metal variant)
-├── Model_Stump (stump variant)
-└── Resource Component
-
-Nav (separate prefab)
-└── NavMesh Collider
-
-Skybox (optional)
+Resource
 └── Model_0
+    ├── Metal_0
+    └── Model_0
+
+Stump
+└── Model_0
+    └── Model_0
 ```
 
 ### Tree Object
 ```
+Debris
+├── Model_0
+│   └── Foliage_0
+│   └── Model_0
+├── Model_1
+│   └── Foliage_1
+│   └── Model_1
+
 Resource
-├── Model_Trunk (trunk mesh with collider)
-├── Model_Leaves (leaves mesh with foliage effect)
-├── Model_Stump (stump mesh)
-├── Model_AdditionalTrunk_X (optional additional trunks)
-├── Model_AdditionalLeaves_X (optional additional leaves)
-├── Resource Component
-└── FoliageEffect Component
+├── Model_0
+│   └── Foliage_0
+│   └── Model_0
+├── Model_1
+│   └── Foliage_1
+│   └── Model_1
 
-Debris (separate prefab)
-├── Model_Trunk (trunk mesh with collider)
-├── Model_Leaves (leaves mesh with foliage effect)
-├── Model_Stump (stump mesh)
-├── Model_AdditionalTrunk_X (optional additional trunks)
-└── Model_AdditionalLeaves_X (optional additional leaves)
-
-Debris (separate prefab)
-├── Model_Stump
-└── Model_AdditionalLeaves_X (optional additional leaves)
-
+Stump
+└── Model_0
+    └── Model_0
 ```
 
 ### Bush Object
 ```
-Object
+Resource
 ├── Model_0 (main bush mesh with collider)
-├── Model_1, Model_2, etc. (additional bush models)
-├── Model_Forage (optional forage mesh)
-├── Resource Component
-└── FoliageEffect Component
-
+├── Model_1 (additional bush model)
+└── Forage (optional forage mesh)
 ```
 
 ## Notes
 
-- All generated objects include optimized mesh colliders
 - Trees and bushes automatically get foliage effects for wind animation
 - Materials are created automatically from textures for trees and bushes
-- Objects are automatically organized in folders by type
+- Objects are automatically organised in folders by type
 - Layer and tag assignments are handled automatically
 - For trees and bushes, a Custom/Foliage shader is used if available, otherwise falls back to Standard shader
 

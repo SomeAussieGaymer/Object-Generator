@@ -1,6 +1,6 @@
 # Auto Object Generator
 
-A Unity Editor tool for automatically generating game objects with LOD (Level of Detail) support. This tool streamlines the creation of objects with different sizes and resource types, complete with mesh colliders and LOD configurations.
+A Unity Editor tool for automatically generating game objects. This tool streamlines the creation of objects with different sizes and resource types, complete with mesh colliders and LOD configurations.
 
 ## Features
 

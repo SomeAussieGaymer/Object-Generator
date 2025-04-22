@@ -30,6 +30,9 @@ public class AutoObjectGenerator : EditorWindow
     private static readonly Dictionary<string, ComponentSetup> ComponentSetups = new Dictionary<string, ComponentSetup>();
 
     private const string BASE_FOLDER = "Assets/Objects";
+    private bool useCustomExportPath = false;
+    private string customExportPath = BASE_FOLDER;
+    
     private static readonly Dictionary<ObjectType, string> TypeFolders = new Dictionary<ObjectType, string>()
     {
         { ObjectType.Small, "Small" },
@@ -174,17 +177,6 @@ public class AutoObjectGenerator : EditorWindow
     private void OnEnable()
     {
         serializedObject = new SerializedObject(this);
-        CreateFolderStructure();
-    }
-
-    private void CreateFolderStructure()
-    {
-        EnsureFolderExists("Assets", "Objects");
-        
-        foreach (var folder in TypeFolders.Values)
-        {
-            EnsureFolderExists(BASE_FOLDER, folder);
-        }
     }
 
     private void EnsureFolderExists(string parentPath, string folderName)
@@ -200,17 +192,23 @@ public class AutoObjectGenerator : EditorWindow
 
     private void GeneratePrefabsAsync()
     {
-        string typeFolder = Path.Combine(BASE_FOLDER, TypeFolders[selectedType]).Replace("\\", "/");
-        string targetFolder = typeFolder;
+        string basePath = useCustomExportPath ? customExportPath : BASE_FOLDER;
+        string targetFolder = basePath;
 
         try
         {
-            CreateFolderStructure();
+            string parentFolder = Path.GetDirectoryName(basePath);
+            string folderName = Path.GetFileName(basePath);
+            
+            if (!string.IsNullOrEmpty(parentFolder) && !string.IsNullOrEmpty(folderName))
+            {
+                EnsureFolderExists(parentFolder, folderName);
+            }
 
             if (!string.IsNullOrEmpty(objectName))
             {
-                targetFolder = Path.Combine(typeFolder, objectName).Replace("\\", "/");
-                EnsureFolderExists(typeFolder, objectName);
+                targetFolder = Path.Combine(basePath, objectName).Replace("\\", "/");
+                EnsureFolderExists(basePath, objectName);
             }
 
             if (selectedType == ObjectType.Trees)
@@ -242,6 +240,7 @@ public class AutoObjectGenerator : EditorWindow
         EditorGUILayout.Space(10);
         
         DrawTypeSelection();
+        DrawExportPathSettings();
         
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
         
@@ -283,6 +282,35 @@ public class AutoObjectGenerator : EditorWindow
         EditorGUILayout.PrefixLabel("Name");
         objectName = EditorGUILayout.TextField(objectName);
         EditorGUILayout.EndHorizontal();
+    }
+    
+    private void DrawExportPathSettings()
+    {
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        useCustomExportPath = EditorGUILayout.Toggle("Use Custom Export Path", useCustomExportPath);
+        
+        if (useCustomExportPath)
+        {
+            EditorGUILayout.BeginHorizontal();
+            customExportPath = EditorGUILayout.TextField("Export Path", customExportPath);
+            if (GUILayout.Button("Browse", GUILayout.Width(60)))
+            {
+                string path = EditorUtility.OpenFolderPanel("Select Export Folder", "Assets", "");
+                if (!string.IsNullOrEmpty(path))
+                {
+                    if (path.Contains(Application.dataPath))
+                    {
+                        customExportPath = "Assets" + path.Substring(Application.dataPath.Length);
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog("Invalid Path", "Please select a folder inside the Assets directory.", "OK");
+                    }
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+        EditorGUILayout.EndVertical();
     }
     
     private void DrawTreeSettings()
@@ -462,11 +490,6 @@ public class AutoObjectGenerator : EditorWindow
         DrawLODSettings();
     }
     
-    private void DrawSectionHeader(string title)
-    {
-        EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
-    }
-    
     private void DrawChildMeshes()
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
@@ -494,6 +517,11 @@ public class AutoObjectGenerator : EditorWindow
         if (GUILayout.Button("Add Model")) childMeshes.Add(null);
         
         EditorGUILayout.EndVertical();
+    }
+    
+    private void DrawSectionHeader(string title)
+    {
+        EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
     }
     
     private void DrawSkyboxSettings()
@@ -606,7 +634,9 @@ public class AutoObjectGenerator : EditorWindow
     {
         EditorGUILayout.Space(5);
         
-        EditorGUILayout.HelpBox($"Objects will be saved to: {TypeFolders[selectedType]}", MessageType.Info);
+        string exportPath = useCustomExportPath ? customExportPath : BASE_FOLDER;
+        string finalPath = !string.IsNullOrEmpty(objectName) ? $"{exportPath}/{objectName}" : exportPath;
+        EditorGUILayout.HelpBox($"Objects will be saved to: {finalPath}", MessageType.Info);
         
         if (selectedType == ObjectType.Small || selectedType == ObjectType.Medium || selectedType == ObjectType.Large)
         {
@@ -1267,4 +1297,3 @@ public class AutoObjectGenerator : EditorWindow
         EditorGUILayout.EndVertical();
     }
 }
-    

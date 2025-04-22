@@ -15,6 +15,7 @@ A Unity Editor tool for automatically generating game objects. This tool streaml
 - Customizable culling and shadow distances based on object size
 - Foliage shader integration for trees and bushes
 - Automatic material generation from textures
+- Select the export location
 
 ## Installation
 
